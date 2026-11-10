@@ -1,12 +1,73 @@
-export type Sneaker={id:string;name:string;color:string;price:number;image:string;sizes:string[]};
-const sizes=['36','37','38','39','40','41','42','43','44','45.5'];
-export const products:Sneaker[]=[
-{id:'air-force',name:"NIKE AIR FORCE 1 '07",color:'Beige Suede / White',price:1700,image:'/shoes/air-force.png',sizes},
-{id:'9060',name:'NEW BALANCE 9060',color:'Baby Blue / Cream',price:1730,image:'/shoes/9060.png',sizes},
-{id:'p6000',name:'NIKE P-6000',color:'Metallic Silver / Brown',price:1500,image:'/shoes/p6000.png',sizes},
-{id:'dunk',name:'NIKE DUNK LOW',color:'Brown / Sail',price:1580,image:'/shoes/dunk.png',sizes},
-{id:'vomero',name:'NIKE AIR ZOOM VOMERO 5',color:'White / Silver',price:1700,image:'/shoes/vomero.png',sizes},
-{id:'samba',name:'ADIDAS SAMBA',color:'White / Black / Gum',price:1600,image:'/shoes/samba.png',sizes},
-{id:'mule',name:'ADIDAS SUEDE MULE',color:'Beige Suede',price:1510,image:'/shoes/mule.png',sizes},
-];
-export const zar=(value:number)=>'R'+value.toLocaleString('en-ZA');
+export type Money = { amount: string; currencyCode: string };
+export type Variant = {
+  id: string;
+  title: string;
+  availableForSale: boolean;
+  quantityAvailable?: number | null;
+  selectedOptions: { name: string; value: string }[];
+  price: Money;
+};
+export type Sneaker = {
+  id: string;
+  handle: string;
+  name: string;
+  color: string;
+  description: string;
+  image: string | null;
+  model: string | null;
+  previewColor?: string;
+  previewCrop?: { x: number; y: number; width: number; height: number };
+  variants: Variant[];
+  price: Money | null;
+};
+// Original approved assortment. These are editorial entries, never purchasable stock.
+export const products: Sneaker[] = [
+  ["air-force", "NIKE AIR FORCE 1 '07", "Beige Suede / White"],
+  ["9060", "NEW BALANCE 9060", "Baby Blue / Cream"],
+  ["p6000", "NIKE P-6000", "Metallic Silver / Brown"],
+  ["dunk", "NIKE DUNK LOW", "Brown / Sail"],
+  ["vomero", "NIKE AIR ZOOM VOMERO 5", "White / Silver"],
+  ["samba", "ADIDAS SAMBA", "White / Black / Gum"],
+  ["mule", "ADIDAS SUEDE MULE", "Beige Suede"],
+].map(([id, name, color]) => ({
+  id,
+  handle: id,
+  name,
+  color,
+  description: "",
+  image: null,
+  model: null,
+  variants: [],
+  price: null,
+}));
+export const money = (value: Money) =>
+  new Intl.NumberFormat("en-ZA", {
+    style: "currency",
+    currency: value.currencyCode,
+  }).format(Number(value.amount));
+export const variantLabel = (variant: Variant) =>
+  variant.selectedOptions
+    .map((option) => `${option.name}: ${option.value}`)
+    .join(" / ") || variant.title;
+export type Cart = {
+  id: string;
+  checkoutUrl: string;
+  totalQuantity: number;
+  cost: { totalAmount: Money };
+  lines: {
+    nodes: {
+      id: string;
+      quantity: number;
+      merchandise: {
+        id: string;
+        title: string;
+        selectedOptions: { name: string; value: string }[];
+        price: Money;
+        product: {
+          title: string;
+          featuredImage: { url: string; altText: string | null } | null;
+        };
+      };
+    }[];
+  };
+};

@@ -4,3 +4,9 @@ out
 .env*
 !.env.example
 *.tsbuildinfo
+
+.vercel
+playwright-report
+test-results
+
+artifacts
