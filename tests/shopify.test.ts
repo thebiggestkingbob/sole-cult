@@ -240,3 +240,26 @@ test("demo cart is isolated, keeps selected sizes and calculates sample totals",
     /available demo size/,
   );
 });
+
+test("saved demo bags are validated and their prices are rebuilt from the sample catalog", async () => {
+  const { restoreDemoCart, changeDemoCart } = await import("../lib/demo-cart");
+  assert.equal(restoreDemoCart("{"), null);
+  assert.equal(restoreDemoCart('{"lines":null}'), null);
+  const good = changeDemoCart(null, {
+    action: "add",
+    variantId: "demo-air-force-40",
+    quantity: 2,
+  });
+  const altered = structuredClone(good);
+  altered.totalQuantity = 999;
+  altered.cost.totalAmount.amount = "0";
+  altered.lines.nodes[0].merchandise.price.amount = "0";
+  const restored = restoreDemoCart(JSON.stringify(altered));
+  assert.equal(restored?.totalQuantity, 2);
+  assert.equal(restored?.cost.totalAmount.amount, "3400");
+  altered.lines.nodes.push(altered.lines.nodes[0]);
+  assert.equal(restoreDemoCart(JSON.stringify(altered)), null);
+  const unknown = structuredClone(good);
+  unknown.lines.nodes[0].merchandise.id = "unrecognized";
+  assert.equal(restoreDemoCart(JSON.stringify(unknown)), null);
+});

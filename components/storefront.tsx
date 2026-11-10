@@ -24,6 +24,7 @@ import {
 } from "@/data/products";
 import { referenceAssets } from "@/data/reference-assets";
 import { demoProducts } from "@/data/demo-products";
+import { loadDemoSession, saveDemoSession } from "@/lib/demo-session";
 import { changeDemoCart } from "@/lib/demo-cart";
 import SneakerImage from "@/components/sneaker-image";
 import { Dialog } from "@/components/dialog";
@@ -106,12 +107,7 @@ export default function Home({ demo = false }: { demo?: boolean }) {
         .finally(() => setLoading(false));
     if (demo) {
       setLoading(false);
-      try {
-        const saved = sessionStorage.getItem("sole-cult-demo-cart");
-        if (saved) setCart(JSON.parse(saved));
-      } catch {
-        sessionStorage.removeItem("sole-cult-demo-cart");
-      }
+      setCart(loadDemoSession());
     }
     if (!demo)
       fetch("/api/cart", { signal: controller.signal })
@@ -201,7 +197,7 @@ export default function Home({ demo = false }: { demo?: boolean }) {
       if (demo) {
         const nextCart = changeDemoCart(cart, body);
         setCart(nextCart);
-        sessionStorage.setItem("sole-cult-demo-cart", JSON.stringify(nextCart));
+        saveDemoSession(nextCart);
         setNotice(body.action === "add" ? "Added to your preview bag." : "");
         setDialog("cart");
         return;
@@ -720,7 +716,7 @@ export default function Home({ demo = false }: { demo?: boolean }) {
                 className="primary"
                 onClick={() => {
                   setCart(null);
-                  sessionStorage.removeItem("sole-cult-demo-cart");
+                  saveDemoSession(null);
                   setDialog("confirmation");
                 }}
               >

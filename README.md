@@ -19,6 +19,7 @@ npm test
 npm run build
 npx playwright install chromium
 npm run test:e2e
+npm run test:commerce
 ```
 
 Browser tests start a production server and cover desktop and mobile Chromium, including real WebGL using an explicitly synthetic test-only mesh. Commerce contract tests use fixtures; real Shopify checkout still requires live credentials and merchant test configuration.
@@ -38,3 +39,9 @@ npm run preview:package
 ```
 
 Download and open `artifacts/sole-cult-preview.html` in a browser. It includes its imagery, scene and code and works offline. All product imagery, pricing and size availability in this version are clearly labelled illustrative. No real order or payment is made. The review imagery is generated from the user-supplied approved screen; see `public/reference/ASSETS.md`. The preview does not misrepresent images as 3D; real model interaction remains available for Shopify products with matching GLB files.
+
+## Continuous verification
+
+GitHub Actions runs lint, types, unit/integration tests, the production build, desktop/mobile browser tests, server-backed commerce tests, and offline preview packaging on development pushes and pull requests. This job uses no merchant or deployment credentials and does not publish production.
+
+`npm run test:commerce` starts a separate production server on `localhost:3100`. Its real Next.js routes and server-only Shopify client talk to an explicitly isolated test fixture loaded into that child process. It verifies HTTP-only cart cookies, persistence, selected variants, inventory warnings, expired-cart recovery and checkout URLs without intercepting browser API calls or creating real orders. Never load the fixture into a live deployment.

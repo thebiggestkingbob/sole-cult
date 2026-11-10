@@ -29,6 +29,38 @@ function errorResponse(error: unknown) {
     },
   );
 }
+async function readMutation(
+  request: NextRequest,
+): Promise<Record<string, unknown>> {
+  const reader = request.body?.getReader();
+  if (!reader) throw new StoreError("Invalid request.", 400);
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > 4096) {
+        await reader.cancel();
+        throw new StoreError("Request too large.", 413);
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new StoreError("Invalid request.", 400);
+  return value as Record<string, unknown>;
+}
 export async function GET(request: NextRequest) {
   try {
     const id = (await cookies()).get(cookieName)?.value;
@@ -48,18 +80,30 @@ export async function POST(request: NextRequest) {
   try {
     // Same-origin requests plus JSON protect cookie-backed mutations from CSRF.
     const origin = request.headers.get("origin");
+    let source: URL | undefined;
+    try {
+      source = origin ? new URL(origin) : undefined;
+    } catch {
+      /* Reject malformed origins below. */
+    }
     if (
-      !origin ||
-      new URL(origin).host !== request.headers.get("host") ||
-      new URL(origin).protocol !==
+      !source ||
+      source.host !== request.headers.get("host") ||
+      source.protocol !==
         (process.env.VERCEL ? "https:" : request.nextUrl.protocol)
     )
       throw new StoreError("Please order from the SOLE CULT website.", 403);
-    if (!request.headers.get("content-type")?.startsWith("application/json"))
+    if (
+      request.headers
+        .get("content-type")
+        ?.split(";")[0]
+        .trim()
+        .toLowerCase() !== "application/json"
+    )
       throw new StoreError("Invalid request.", 415);
     if (Number(request.headers.get("content-length")) > 4096)
       throw new StoreError("Request too large.", 413);
-    const body = await request.json();
+    const body = await readMutation(request);
     const id = (await cookies()).get(cookieName)?.value;
     const ip = buyerIp(request);
     let result;
@@ -67,6 +111,7 @@ export async function POST(request: NextRequest) {
       if (
         typeof body.variantId !== "string" ||
         !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(body.variantId) ||
+        typeof body.quantity !== "number" ||
         !Number.isInteger(body.quantity) ||
         body.quantity < 1 ||
         body.quantity > 10
@@ -76,14 +121,20 @@ export async function POST(request: NextRequest) {
       const existing = id ? await getCart(id, ip) : null;
       result = await addToCart(existing?.id, body.variantId, body.quantity, ip);
     } else if (body.action === "update" || body.action === "remove") {
-      if (!id || typeof body.lineId !== "string" || body.lineId.length > 512)
+      if (
+        !id ||
+        typeof body.lineId !== "string" ||
+        !body.lineId.trim() ||
+        body.lineId.length > 512
+      )
         throw new StoreError(
           "Your bag has expired. Please add the sneaker again.",
           400,
         );
       if (
         body.action === "update" &&
-        (!Number.isInteger(body.quantity) ||
+        (typeof body.quantity !== "number" ||
+          !Number.isInteger(body.quantity) ||
           body.quantity < 1 ||
           body.quantity > 10)
       )

@@ -82,6 +82,7 @@ export default function SneakerViewer({
 }) {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [loadedId, setLoadedId] = useState<string | null>(null);
+  const [timedOutId, setTimedOutId] = useState<string | null>(null);
   const ready = useCallback(() => {
     setLoadedId(product.id);
     onReady();
@@ -98,6 +99,20 @@ export default function SneakerViewer({
       onReady();
     }
   }, [product.id, product.model, supported, onReady, onAvailabilityChange]);
+  useEffect(() => {
+    if (!product.model || supported !== true || loadedId === product.id) return;
+    const timeout = setTimeout(() => setTimedOutId(product.id), 15000);
+    return () => clearTimeout(timeout);
+  }, [product.id, product.model, supported, loadedId]);
+  if (timedOutId === product.id)
+    return (
+      <ReadyFallback
+        product={product}
+        onReady={onReady}
+        onAvailabilityChange={onAvailabilityChange}
+        reason="The 3D model is taking too long. Product photo shown when available."
+      />
+    );
   if (!product.model || supported === false)
     return (
       <AssetFallback
@@ -179,21 +194,18 @@ function ReadyFallback({
   product,
   onReady,
   onAvailabilityChange,
+  reason = "The 3D model could not load. Product photo shown when available.",
 }: {
   product: Sneaker;
   onReady: () => void;
   onAvailabilityChange: (available: boolean) => void;
+  reason?: string;
 }) {
   useEffect(() => {
     onAvailabilityChange(false);
     onReady();
   }, [onReady, onAvailabilityChange]);
-  return (
-    <AssetFallback
-      product={product}
-      reason="The 3D model could not load. Product photo shown when available."
-    />
-  );
+  return <AssetFallback product={product} reason={reason} />;
 }
 function Model({
   url,

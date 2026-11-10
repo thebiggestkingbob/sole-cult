@@ -30,6 +30,8 @@ for (const [name, options] of [
     fullPage: true,
   });
   await page.getByRole("button", { name: "ADD TO BAG", exact: true }).click();
+  await page.reload();
+  await page.getByRole("button", { name: "Bag: 1 items" }).click();
   await page.getByRole("button", { name: "CONTINUE TO CHECKOUT" }).click();
   await page.screenshot({
     path: `artifacts/sole-cult-reference-checkout-${name}.png`,

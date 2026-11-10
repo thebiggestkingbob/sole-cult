@@ -440,3 +440,59 @@ test("reference-matched preview renders distinct image assets and a safe demo ch
   expect(calls).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test("a corrupted saved preview bag is discarded without breaking the storefront", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() =>
+    sessionStorage.setItem(
+      "sole-cult-demo-cart",
+      '{"id":"sole-cult-demo","lines":{"nodes":[null]}}',
+    ),
+  );
+  await page.goto("/preview");
+  await page.getByRole("button", { name: "Bag: 0 items" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Your bag is empty.");
+  expect(errors).toEqual([]);
+});
+test("the preview bag still works when the browser blocks storage", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() =>
+    Object.defineProperty(window, "sessionStorage", {
+      get() {
+        throw new DOMException("Storage blocked", "SecurityError");
+      },
+    }),
+  );
+  await page.goto("/preview");
+  await page.getByRole("button", { name: "ADD TO BAG", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Added to your preview bag.",
+  );
+  await expect(
+    page.getByRole("button", { name: "Bag: 1 items" }),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
+});
+test("a stalled model falls back and releases sneaker selection", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await mockCatalog(page, "/never-finishes.glb");
+  await page.route("**/never-finishes.glb", () => new Promise(() => {}));
+  await page.goto("/");
+  await expect(page.getByText("Loading 3D model…")).toBeVisible();
+  await page.clock.fastForward(15001);
+  await expect(
+    page.getByText("The 3D model is taking too long.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Rotate", exact: true }),
+  ).toBeDisabled();
+  await expect(page.locator(".thumb").last()).toBeEnabled();
+});

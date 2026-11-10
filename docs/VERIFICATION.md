@@ -6,17 +6,17 @@ Browse the approved SOLE CULT showroom → select a sneaker → rotate/zoom its 
 
 ## Executed checks
 
-| Check | Result | Evidence and scope |
-| --- | --- | --- |
-| ESLint | Passed | `npm run lint`, no warnings or errors |
-| TypeScript | Passed | `npm run typecheck` |
-| Production build | Passed | `npm run build`, Next.js 15.5.29; Shop/About static pages and dynamic catalog/cart endpoints |
-| Shopify integration contracts | 12 passed | `npm test`; mocked Storefront responses check credential isolation, host validation, real media/variant mapping, currency, sold-out inventory, insufficient inventory, exact add payload, cart creation, mutation errors/warnings, expired carts and upstream error sanitization |
-| Desktop/mobile browser checks | 18 passed (25.6 seconds) | `npm run test:e2e`; production server, Chromium desktop and iPhone 13 viewport/touch emulation |
-| Production dependency audit | Passed | `npm audit --omit=dev --audit-level=high`: zero vulnerabilities after the PostCSS override |
-| Live Shopify order/checkout | Blocked | No store hostname/private Storefront token or merchant test-mode configuration was supplied |
-| Genuine sneaker model verification | Blocked | None of the seven approved photographs or licensed sneaker models was supplied |
-| Vercel preview | Blocked | Connected team returned HTTP 403 on project creation; CLI fallback has no local credentials |
+| Check                              | Result                   | Evidence and scope                                                                                                                                                                                                                                                               |
+| ---------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ESLint                             | Passed                   | `npm run lint`, no warnings or errors                                                                                                                                                                                                                                            |
+| TypeScript                         | Passed                   | `npm run typecheck`                                                                                                                                                                                                                                                              |
+| Production build                   | Passed                   | `npm run build`, Next.js 15.5.29; Shop/About static pages and dynamic catalog/cart endpoints                                                                                                                                                                                     |
+| Shopify integration contracts      | 12 passed                | `npm test`; mocked Storefront responses check credential isolation, host validation, real media/variant mapping, currency, sold-out inventory, insufficient inventory, exact add payload, cart creation, mutation errors/warnings, expired carts and upstream error sanitization |
+| Desktop/mobile browser checks      | 18 passed (25.6 seconds) | `npm run test:e2e`; production server, Chromium desktop and iPhone 13 viewport/touch emulation                                                                                                                                                                                   |
+| Production dependency audit        | Passed                   | `npm audit --omit=dev --audit-level=high`: zero vulnerabilities after the PostCSS override                                                                                                                                                                                       |
+| Live Shopify order/checkout        | Blocked                  | No store hostname/private Storefront token or merchant test-mode configuration was supplied                                                                                                                                                                                      |
+| Genuine sneaker model verification | Blocked                  | None of the seven approved photographs or licensed sneaker models was supplied                                                                                                                                                                                                   |
+| Vercel preview                     | Blocked                  | Connected team returned HTTP 403 on project creation; CLI fallback has no local credentials                                                                                                                                                                                      |
 
 Browser coverage includes the seven unnamed thumbnail selectors, search and empty search, account fallback, reduced motion, size reset on product changes, disabled sold-out sizes, exact WhatsApp option text, add/quantity/remove/checkout rendering, stock errors, API origin/input validation, actual WebGL rendering, rotate/zoom, pointer and touch drag, transition locking, model loading errors, absent WebGL and slow model arrival. Tests watch page errors and compare rendered canvas images after interaction. Desktop and mobile fallback layouts are checked for horizontal overflow.
 
@@ -50,3 +50,12 @@ The earlier generic model review was rejected. The user then supplied the actual
 - This correction does not establish genuine product assets, merchant stock, a live order, physical-phone performance or a hosted Vercel preview. Those acceptance requirements remain unchanged.
 
 Final corrected-layout run: **20 browser checks passed in 26.5 seconds**; **13 unit/integration tests passed**; lint, TypeScript and the production build passed. Desktop and mobile offline demo confirmations produced no page errors. The mobile model-backed layout was adjusted to keep 3D controls clear of the thumbnail row.
+
+## Continued build: server-backed commerce and recovery
+
+- **14 unit/integration tests passed**, including invalid saved bags, duplicate/unknown variants and rebuilding sample prices from known catalog data.
+- **26 desktop/mobile browser checks passed** in 27.3 seconds. New cases verify blocked storage, corrupted saved bags and a stalled-model fallback after 15 seconds.
+- **6 server-backed commerce checks passed** in 5.7 seconds. This suite runs the real Next.js routes and server-only Storefront client against an isolated upstream fixture. It verifies actual HTTP-only/Secure/SameSite cookies, refresh persistence, stock-adjustment warnings, variant identity, Shopify checkout URLs, expired carts, malformed origins, primitive JSON and oversized chunked bodies. It does not intercept browser API responses.
+- Lint, TypeScript and the production build passed. GitHub Actions now runs the same checks on development pushes and pull requests.
+
+These are stronger integration checks, not evidence of successful communication with a real merchant store or a completed payment. Real Shopify credentials, product-specific licensed GLBs, WhatsApp confirmation and Vercel project-creation access are still required for final acceptance.

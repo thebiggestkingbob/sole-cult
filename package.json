@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "NODE_OPTIONS=--conditions=react-server tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
-    "preview:package": "node scripts/build-preview.mjs"
+    "preview:package": "node scripts/build-preview.mjs",
+    "test:commerce": "playwright test --config playwright.commerce.config.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

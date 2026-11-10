@@ -74,3 +74,13 @@ A team owner must grant project creation access to the connected identity or cre
 ## Verification and limits
 
 See `docs/VERIFICATION.md` for the executed checks. Shopify contract tests use mocked responses, and browser commerce tests intercept the API. **A successful mocked test does not establish that the real store or payment checkout works.** Before approval, repeat the entire live catalog → exact variant → inventory → persistent cart → Shopify checkout journey using the actual preview and merchant-approved test mode, then verify all seven genuine product models on desktop and a physical phone.
+
+## Build continuation and resilience
+
+The reference-based visual layout is unchanged. The next implementation pass fixes malformed/primitive cart payload handling, rejects oversized streamed request bodies, validates saved preview bags, tolerates browsers that block session storage, and falls back after 15 seconds when a GLB request stalls. A stalled model releases sneaker selection rather than trapping users in a transition.
+
+The commerce integration now has server-backed desktop/mobile verification in addition to its earlier contract and browser tests. Only the external Shopify fetch is simulated; requests exercise the real browser, Next.js route, private-header client, HTTP-only Secure SameSite cart cookie, inventory warnings, persisted bag, expired cart handling and checkout response.
+
+A GitHub Actions workflow runs the verification and package steps on development pushes and pull requests. The fixture and workflow contain no real merchant or deployment credentials and do not place orders or deploy production.
+
+Deployment access was rechecked during this continuation. The connected Vercel team still has no `sole-cult` project; the environment has no configured Shopify secrets or CLI deployment identity. The earlier project-creation 403 remains unresolved. No permission change, store configuration or genuine GLB asset has been supplied, so live store acceptance and the Vercel preview remain blocked; unchanged failing mutations are not retried.
