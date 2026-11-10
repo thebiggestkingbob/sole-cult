@@ -26,3 +26,15 @@ Browser tests start a production server and cover desktop and mobile Chromium, i
 [Audit, implementation and missing configuration](docs/IMPLEMENTATION.md) · [Verification results](docs/VERIFICATION.md)
 
 This work is not ready for final acceptance until genuine product assets, live commerce verification and a Vercel preview are available.
+
+## Review the populated design now
+
+Open `/preview` for the approved showroom with a real illustrative 3D sneaker, seven colour treatments, sample prices and sizes, and a complete demo bag/checkout flow. The normal storefront remains connected to the real Shopify implementation when configured.
+
+For a version that needs no server or credentials:
+
+```bash
+npm run preview:package
+```
+
+Download and open `artifacts/sole-cult-preview.html` in a browser. It includes its model, images and code and works offline. All product imagery, pricing and size availability in this version are clearly labelled illustrative. No real order or payment is made. Preview model attribution: © 2021 Shopify, CC BY 4.0; see `public/models/ATTRIBUTION.md`.

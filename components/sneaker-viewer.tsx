@@ -11,7 +11,14 @@ import {
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { Box3, Vector3, type Group } from "three";
+import {
+  Box3,
+  Color,
+  Vector3,
+  type Group,
+  Mesh,
+  MeshStandardMaterial,
+} from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import { ImageIcon } from "lucide-react";
 import type { Sneaker } from "@/data/products";
@@ -74,8 +81,11 @@ export default function SneakerViewer({
   onAvailabilityChange: (available: boolean) => void;
 }) {
   const [supported, setSupported] = useState<boolean | null>(null);
-  const [loadedId,setLoadedId]=useState<string|null>(null);
-  const ready=useCallback(()=>{setLoadedId(product.id);onReady();},[product.id,onReady]);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const ready = useCallback(() => {
+    setLoadedId(product.id);
+    onReady();
+  }, [product.id, onReady]);
   useEffect(() => {
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2");
@@ -121,12 +131,21 @@ export default function SneakerViewer({
         role="img"
         aria-label={`Interactive 3D model of ${product.name}. Drag to rotate through 360 degrees; scroll or pinch to zoom. Use the buttons below for keyboard control.`}
       >
-        {loadedId!==product.id&&<div className="model-loading" role="status">Loading 3D model…</div>}
+        {loadedId !== product.id && (
+          <div className="model-loading" role="status">
+            Loading 3D model…
+          </div>
+        )}
         <Canvas
           dpr={[1, 1.5]}
           frameloop={phase === "idle" ? "demand" : "always"}
           camera={{ position: [0, 0.4, 5.8], fov: 38 }}
-          gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
+          gl={{
+            antialias: true,
+            alpha: true,
+            powerPreference: "low-power",
+            preserveDrawingBuffer: Boolean(product.previewColor),
+          }}
         >
           <ContextMonitor onLost={() => setSupported(false)} />
           <ambientLight intensity={1.6} />
@@ -137,6 +156,7 @@ export default function SneakerViewer({
             <Model
               key={product.id}
               url={product.model}
+              tint={product.previewColor}
               phase={phase}
               reduced={reduced}
               onReady={ready}
@@ -177,12 +197,14 @@ function ReadyFallback({
 }
 function Model({
   url,
+  tint,
   phase,
   reduced,
   onReady,
   onAvailabilityChange,
 }: {
   url: string;
+  tint?: string;
   phase: Phase;
   reduced: boolean;
   onReady: () => void;
@@ -195,13 +217,37 @@ function Model({
   const { scene } = useGLTF(url);
   const object = useMemo(() => {
     const clone = scene.clone(true);
+    if (tint)
+      clone.traverse((node) => {
+        if ((node as Mesh).isMesh) {
+          const mesh = node as Mesh;
+          const recolor = (material: MeshStandardMaterial) => {
+            const copy = material.clone();
+            copy.color.set("#ffffff");
+            copy.onBeforeCompile = (shader) => {
+              shader.uniforms.previewTint = { value: new Color(tint) };
+              shader.fragmentShader =
+                "uniform vec3 previewTint;\n" + shader.fragmentShader;
+              shader.fragmentShader = shader.fragmentShader.replace(
+                "#include <map_fragment>",
+                "#include <map_fragment>\n float previewLuma=dot(diffuseColor.rgb,vec3(0.2126,0.7152,0.0722)); vec3 previewColor=mix(previewTint,vec3(0.96),smoothstep(0.45,0.75,previewLuma))*(0.45+0.55*sqrt(previewLuma)); diffuseColor.rgb=mix(diffuseColor.rgb,previewColor,smoothstep(0.015,0.08,previewLuma));",
+              );
+            };
+            copy.customProgramCacheKey = () => tint;
+            return copy;
+          };
+          mesh.material = Array.isArray(mesh.material)
+            ? mesh.material.map((m) => recolor(m as MeshStandardMaterial))
+            : recolor(mesh.material as MeshStandardMaterial);
+        }
+      });
     const bounds = new Box3().setFromObject(clone),
       size = bounds.getSize(new Vector3()),
       center = bounds.getCenter(new Vector3());
     const rootScale = 3.6 / Math.max(size.x, size.y, size.z, 0.001);
     clone.position.sub(center);
     return { clone, rootScale };
-  }, [scene]);
+  }, [scene, tint]);
   const group = useRef<Group>(null);
   const start = useRef<number | null>(null);
   const invalidate = useThree((state) => state.invalidate);

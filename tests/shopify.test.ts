@@ -213,3 +213,30 @@ test("upstream GraphQL errors do not leak private details", async () => {
     (e: unknown) => e instanceof StoreError && !e.message.includes("sensitive"),
   );
 });
+
+test("demo cart is isolated, keeps selected sizes and calculates sample totals", async () => {
+  const { changeDemoCart } = await import("../lib/demo-cart");
+  const { demoProducts } = await import("../data/demo-products");
+  const variant = demoProducts[0].variants[0];
+  let cart = changeDemoCart(null, { action: "add", variantId: variant.id });
+  assert.equal(cart.totalQuantity, 1);
+  assert.equal(cart.checkoutUrl, "");
+  assert.equal(cart.lines.nodes[0].merchandise.title, "36");
+  cart = changeDemoCart(cart, {
+    action: "update",
+    lineId: variant.id,
+    quantity: 2,
+  });
+  assert.equal(cart.cost.totalAmount.amount, "3400");
+  assert.equal(cart.totalQuantity, 2);
+  cart = changeDemoCart(cart, { action: "remove", lineId: variant.id });
+  assert.equal(cart.totalQuantity, 0);
+  assert.throws(
+    () =>
+      changeDemoCart(null, {
+        action: "add",
+        variantId: demoProducts[0].variants[8].id,
+      }),
+    /available demo size/,
+  );
+});

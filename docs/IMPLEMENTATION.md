@@ -4,6 +4,20 @@
 
 The approved storefront has been implemented and tested locally. **The requested end-to-end delivery is not complete:** approved product imagery/models and Shopify configuration are missing, and Vercel project creation is forbidden for the connected identity. No production release or payment has been attempted.
 
+## Populated review version
+
+At the user’s request, `/preview` now presents the completed layout using explicitly assumed content. The normal `/` storefront and live Shopify integration retain their existing behavior.
+
+- A real, textured GLB sneaker model is rendered interactively in seven preview colour treatments. This generic model illustrates the showroom; it does not represent the seven named branded products accurately. Its source is **Materials Variants Shoe, © 2021 Shopify, CC BY 4.0**, from the Khronos glTF Sample Assets repository. Default material and preview tints are modified; full attribution is tracked in `public/models/ATTRIBUTION.md` and linked from the preview footer.
+- Seven matching thumbnail PNGs are rendered from that actual model. No missing image links are used in the review version.
+- Original sample prices and ten illustrative EU size options populate the approved product panel. One size is disabled to demonstrate the sold-out state. All of these are **demo data**, not verified inventory or pricing.
+- The review bag supports add, quantity changes, remove and tab-session persistence. It uses a dedicated browser-session key, never the Shopify cart cookie or commerce API.
+- WhatsApp opens the composed order-message preview; no invented recipient is contacted. Account controls show an illustrative account introduction. Checkout shows a sample order summary and an explicit demo confirmation without collecting payment details, creating a real order or contacting any commerce API.
+- A self-contained offline HTML preview embeds the model, seven thumbnails, JavaScript and CSS. Generate it with `npm run preview:package`; output is `artifacts/sole-cult-preview.html`. Open it in a browser without a server or credentials. About navigation, search, real 3D controls and demo checkout work within that file. The artifact is intentionally gitignored and generated from the tracked implementation and licensed assets.
+- `scripts/capture-preview.mjs` can regenerate model thumbnails and desktop/mobile screenshots against a local `/preview` server. Restart the Next.js server after introducing new public asset paths before capturing the populated layout.
+
+The user can approve the experience and replace its temporary assets later. A populated demo is not a completed live commerce release; the external configuration and final product-specific assets listed below still apply.
+
 ## Repository audit
 
 Base commit: `d0a4ca8` on `main`.

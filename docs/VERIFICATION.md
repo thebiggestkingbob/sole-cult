@@ -30,3 +30,12 @@ The WebGL mesh is explicitly synthetic and test-only. The commerce responses are
 4. Resolve Vercel team project-creation access, connect the repository and deploy `dev/immersive-storefront` as a preview with scoped secrets.
 5. On that preview, verify actual product/size/price/inventory, sold-out behavior, cart persistence after refresh, quantity changes, removal, Shopify checkout and hosted account access. Use merchant-approved test mode for payment verification.
 6. Verify real desktop mouse/scroll and physical-phone rotate/pinch interactions, all seven flying transitions, reduced motion, missing-asset/error fallbacks and the preserved approved product-detail design. Obtain approval before any production release.
+
+## Populated design-preview follow-up
+
+The user authorized an assumed-content review version before supplying final HD assets. The `/preview` route and self-contained HTML artifact were added and checked separately from live commerce.
+
+- Unit/integration suite expanded to **13 tests**, including isolation of the demo cart, selected sizes, sample total calculation and disabled demo variants.
+- Browser suite expanded to **20 passing tests (38.4 seconds)** with desktop/mobile checks of the actual licensed sneaker model and generated thumbnails, WhatsApp message preview, bag persistence across refresh, and the complete demo checkout/confirmation flow. The test asserts that this flow makes **zero commerce API requests** and produces no page errors.
+- The self-contained HTML was opened from a local `file://` URL in Chromium. The GLB loaded and demo checkout reached confirmation with **zero external HTTP requests and zero page errors**. Desktop and mobile screenshots were captured. About navigation returns to the demo showroom within the offline file.
+- The actual shoe asset is an attributed generic model, not verified branded product geometry. The final merchant catalog, actual product models, real checkout, physical-device testing and Vercel deployment remain the acceptance requirements above.

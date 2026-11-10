@@ -807,4 +807,113 @@ body:has(dialog[open]) {
   }
 }
 
-.model-loading{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font-size:13px;color:#756253;z-index:2}
+.model-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  font-size: 13px;
+  color: #756253;
+  z-index: 2;
+}
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 9px 4%;
+  font-size: 11px;
+  color: #6d5746;
+  border-top: 1px solid #c7ac9026;
+  border-bottom: 1px solid #c7ac9026;
+  letter-spacing: 0.02em;
+}
+.demo-banner > span {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  border: 1px solid #aa8b6c80;
+  border-radius: 20px;
+  padding: 4px 8px;
+}
+.model-caption {
+  position: absolute;
+  bottom: 10px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #80664f;
+  pointer-events: none;
+  z-index: 2;
+}
+.order-message {
+  padding: 22px;
+  background: #eee0cf;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.checkout-summary {
+  padding: 0;
+  list-style: none;
+}
+.checkout-summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 18px 0;
+  border-top: 1px solid #dac4ae;
+  font-size: 13px;
+}
+.checkout-summary small {
+  display: block;
+  margin-top: 8px;
+  color: #80664f;
+}
+.checkout-summary b {
+  white-space: nowrap;
+}
+.eyebrow {
+  font-size: 10px !important;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  color: #80664f;
+}
+.confirmation-mark {
+  text-align: center;
+  font-size: 50px !important;
+  color: #6d775d;
+  margin: 15px 0;
+}
+.dialog h3 {
+  letter-spacing: -0.03em;
+}
+.dialog .primary {
+  width: 100%;
+}
+footer > a {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: #80664f;
+}
+@media (max-width: 640px) {
+  .demo-banner {
+    font-size: 9px;
+    gap: 6px;
+  }
+  .demo-banner > span {
+    font-size: 8px;
+  }
+  .model-caption {
+    bottom: 4px;
+    font-size: 9px;
+  }
+  footer > a {
+    font-size: 7px;
+  }
+}
+.demo-banner {
+  position: relative;
+  z-index: 3;
+}

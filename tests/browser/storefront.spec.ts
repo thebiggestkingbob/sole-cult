@@ -391,3 +391,49 @@ test("the entrance animation waits for a slow model to load", async ({
   });
   await expect(page.locator("canvas")).toBeVisible();
 });
+
+test("populated design preview renders real sneaker assets and a safe complete demo checkout", async ({
+  page,
+}) => {
+  const calls: string[] = [];
+  const errors: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/api/")) calls.push(r.url());
+  });
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/preview");
+  await expect(page.getByText("DESIGN PREVIEW", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Rotate", exact: true }),
+  ).toBeEnabled({ timeout: 15000 });
+  expect(
+    await page
+      .locator(".thumb img")
+      .evaluateAll((images) =>
+        images.every((img) => (img as HTMLImageElement).naturalWidth > 0),
+      ),
+  ).toBe(true);
+  await page.getByRole("button", { name: "EU Size: 40", exact: true }).click();
+  await page
+    .getByRole("button", { name: "ORDER ON WHATSAPP", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("EU Size: 40");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "ADD TO BAG", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Added to your preview bag.",
+  );
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await page.getByRole("button", { name: "Bag: 1 items" }).click();
+  await page.getByRole("button", { name: "CONTINUE TO CHECKOUT" }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "No payment details are collected.",
+  );
+  await page
+    .getByRole("button", { name: "PREVIEW ORDER CONFIRMATION" })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("No order was placed");
+  expect(calls).toEqual([]);
+  expect(errors).toEqual([]);
+});
