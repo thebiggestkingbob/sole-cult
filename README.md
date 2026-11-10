@@ -29,7 +29,7 @@ This work is not ready for final acceptance until genuine product assets, live c
 
 ## Review the populated design now
 
-Open `/preview` for the approved showroom with a real illustrative 3D sneaker, seven colour treatments, sample prices and sizes, and a complete demo bag/checkout flow. The normal storefront remains connected to the real Shopify implementation when configured.
+Open `/preview` for the approved showroom with a reference-matched Air Force image, seven distinct sneaker selections, sample prices and sizes, and a complete demo bag/checkout flow. The normal storefront remains connected to the real Shopify implementation when configured.
 
 For a version that needs no server or credentials:
 
@@ -37,4 +37,4 @@ For a version that needs no server or credentials:
 npm run preview:package
 ```
 
-Download and open `artifacts/sole-cult-preview.html` in a browser. It includes its model, images and code and works offline. All product imagery, pricing and size availability in this version are clearly labelled illustrative. No real order or payment is made. Preview model attribution: © 2021 Shopify, CC BY 4.0; see `public/models/ATTRIBUTION.md`.
+Download and open `artifacts/sole-cult-preview.html` in a browser. It includes its imagery, scene and code and works offline. All product imagery, pricing and size availability in this version are clearly labelled illustrative. No real order or payment is made. The review imagery is generated from the user-supplied approved screen; see `public/reference/ASSETS.md`. The preview does not misrepresent images as 3D; real model interaction remains available for Shopify products with matching GLB files.

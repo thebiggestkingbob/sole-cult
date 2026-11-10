@@ -4,19 +4,17 @@
 
 The approved storefront has been implemented and tested locally. **The requested end-to-end delivery is not complete:** approved product imagery/models and Shopify configuration are missing, and Vercel project creation is forbidden for the connected identity. No production release or payment has been attempted.
 
-## Populated review version
+## Reference-matched review version
 
-At the user’s request, `/preview` now presents the completed layout using explicitly assumed content. The normal `/` storefront and live Shopify integration retain their existing behavior.
+The user supplied the approved 1280×720 screen after rejecting the earlier generic-model preview. The current implementation is rebuilt around that specific reference: oversized beige Air Force presentation, luminous architectural arch, shallow illuminated plinth, reflective cream floor, brush-style wordmark, compact product panel, and seven distinct bottom thumbnails.
 
-- A real, textured GLB sneaker model is rendered interactively in seven preview colour treatments. This generic model illustrates the showroom; it does not represent the seven named branded products accurately. Its source is **Materials Variants Shoe, © 2021 Shopify, CC BY 4.0**, from the Khronos glTF Sample Assets repository. Default material and preview tints are modified; full attribution is tracked in `public/models/ATTRIBUTION.md` and linked from the preview footer.
-- Seven matching thumbnail PNGs are rendered from that actual model. No missing image links are used in the review version.
-- Original sample prices and ten illustrative EU size options populate the approved product panel. One size is disabled to demonstrate the sold-out state. All of these are **demo data**, not verified inventory or pricing.
-- The review bag supports add, quantity changes, remove and tab-session persistence. It uses a dedicated browser-session key, never the Shopify cart cookie or commerce API.
-- WhatsApp opens the composed order-message preview; no invented recipient is contacted. Account controls show an illustrative account introduction. Checkout shows a sample order summary and an explicit demo confirmation without collecting payment details, creating a real order or contacting any commerce API.
-- A self-contained offline HTML preview embeds the model, seven thumbnails, JavaScript and CSS. Generate it with `npm run preview:package`; output is `artifacts/sole-cult-preview.html`. Open it in a browser without a server or credentials. About navigation, search, real 3D controls and demo checkout work within that file. The artifact is intentionally gitignored and generated from the tracked implementation and licensed assets.
-- `scripts/capture-preview.mjs` can regenerate model thumbnails and desktop/mobile screenshots against a local `/preview` server. Restart the Next.js server after introducing new public asset paths before capturing the populated layout.
-
-The user can approve the experience and replace its temporary assets later. A populated demo is not a completed live commerce release; the external configuration and final product-specific assets listed below still apply.
+- `/preview` uses temporary generated image assets derived from the supplied design. The central Air Force cutout is separate from the architectural background. Six secondary sneakers use distinct, cropped image regions. The reference layout is rendered as real responsive HTML/CSS controls, not a screenshot with hidden hotspots.
+- These are **illustrative 2D images**, not verified product photographs or 3D models. Image previews use a fade/lift transition and do not expose fake rotation controls. The authentic React Three Fiber / Three.js GLB viewer is retained for live Shopify products with a matching model; its rotation, zoom, touch, reduced-motion and flying transitions remain tested.
+- The sample product panel follows the reference: `R1700` formatting, ten EU size options, size 40 initially selected, Add to Bag and WhatsApp controls. Pricing and sizes remain explicitly labelled demo data, not merchant inventory.
+- Search, account introduction, size guide, all seven selections, bag add/update/remove, tab-session persistence, WhatsApp message preview, checkout summary and demo confirmation remain functional. No real order, payment or WhatsApp message is sent, and the demo makes no commerce API requests.
+- The normal `/` storefront uses the same visual composition and retains real Shopify integration. Real stock and pricing are never substituted with sample data on that route.
+- `npm run preview:package` creates `artifacts/sole-cult-preview.html`, embedding the images, wordmark, scene, JavaScript and CSS. The file works offline without credentials. `node scripts/capture-preview.mjs` checks desktop/mobile demo checkout and captures the 1280×720 reference composition plus a mobile adaptation.
+- Temporary image provenance is recorded in `public/reference/ASSETS.md`. The user’s final HD imagery and matching licensed GLB assets are still needed before live commerce acceptance.
 
 ## Repository audit
 

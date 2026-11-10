@@ -235,7 +235,7 @@ test("demo cart is isolated, keeps selected sizes and calculates sample totals",
     () =>
       changeDemoCart(null, {
         action: "add",
-        variantId: demoProducts[0].variants[8].id,
+        variantId: "missing-demo-variant",
       }),
     /available demo size/,
   );

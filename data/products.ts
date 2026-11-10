@@ -16,6 +16,7 @@ export type Sneaker = {
   image: string | null;
   model: string | null;
   previewColor?: string;
+  previewCrop?: { x: number; y: number; width: number; height: number };
   variants: Variant[];
   price: Money | null;
 };

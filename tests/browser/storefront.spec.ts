@@ -79,7 +79,7 @@ test("unconfigured storefront is honest, usable, and preserves seven unnamed thu
   await expect(page.getByText("Price on request")).toBeVisible();
   await expect(page.locator(".thumb")).toHaveCount(7);
   await expect(page.locator(".thumb").first()).toHaveText("");
-  await expect(page.getByText("3D model not yet available")).toBeVisible();
+  await expect(page.getByText("Product image not yet available")).toBeVisible();
   await page.getByRole("button", { name: "Account", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText(
     "Customer accounts are not available yet",
@@ -118,7 +118,7 @@ test("search selects a sneaker, resets size, and respects reduced motion", async
   await expect(
     page.getByRole("button", { name: "ADD TO BAG", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("button", { name: "Next sneaker" }).click();
+  await page.keyboard.press("ArrowRight");
   await expect(page.locator(".product h2")).toHaveText("Test Sneaker 4");
 });
 test("size, WhatsApp, cart quantity, remove, and checkout use the selected Shopify variant", async ({
@@ -288,13 +288,9 @@ test("real WebGL model loading, rotate, zoom and flying transition", async ({
   await page
     .getByRole("button", { name: "View Test Sneaker 2", exact: true })
     .click();
-  await expect(
-    page.getByRole("button", { name: "Next sneaker" }),
-  ).toBeDisabled();
+  await expect(page.locator(".thumb").last()).toBeDisabled();
   await expect(page.locator(".product h2")).toHaveText("Test Sneaker 2");
-  await expect(
-    page.getByRole("button", { name: "Next sneaker" }),
-  ).toBeEnabled();
+  await expect(page.locator(".thumb").last()).toBeEnabled();
   await page.getByRole("button", { name: "Reset 3D view" }).click();
   const canvas = page.locator("canvas");
   await canvas.scrollIntoViewIfNeeded();
@@ -383,16 +379,14 @@ test("the entrance animation waits for a slow model to load", async ({
     .getByRole("button", { name: "View Test Sneaker 2", exact: true })
     .click();
   await expect(page.locator(".product h2")).toHaveText("Test Sneaker 2");
-  await expect(
-    page.getByRole("button", { name: "Next sneaker" }),
-  ).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Next sneaker" })).toBeEnabled({
+  await expect(page.locator(".thumb").last()).toBeDisabled();
+  await expect(page.locator(".thumb").last()).toBeEnabled({
     timeout: 10000,
   });
   await expect(page.locator("canvas")).toBeVisible();
 });
 
-test("populated design preview renders real sneaker assets and a safe complete demo checkout", async ({
+test("reference-matched preview renders distinct image assets and a safe demo checkout", async ({
   page,
 }) => {
   const calls: string[] = [];
@@ -401,17 +395,26 @@ test("populated design preview renders real sneaker assets and a safe complete d
     if (r.url().includes("/api/")) calls.push(r.url());
   });
   page.on("pageerror", (e) => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/preview");
   await expect(page.getByText("DESIGN PREVIEW", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Rotate", exact: true }),
-  ).toBeEnabled({ timeout: 15000 });
+  await expect(page.locator(".hero-photo img")).toBeVisible();
+  await expect(page.locator(".thumb img,.thumb svg")).toHaveCount(7);
+  await expect(page.locator(".interaction")).toBeHidden();
+  for (let i = 1; i < 7; i++) {
+    await page.locator(".thumb").nth(i).click();
+    await expect(page.locator(".hero-photo svg")).toBeVisible();
+    await expect(page.locator(".thumb").nth(i)).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  }
+  await page.locator(".thumb").first().click();
+
   expect(
     await page
-      .locator(".thumb img")
-      .evaluateAll((images) =>
-        images.every((img) => (img as HTMLImageElement).naturalWidth > 0),
-      ),
+      .locator(".hero-photo img")
+      .evaluate((img) => (img as HTMLImageElement).naturalWidth > 0),
   ).toBe(true);
   await page.getByRole("button", { name: "EU Size: 40", exact: true }).click();
   await page

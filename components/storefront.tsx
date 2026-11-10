@@ -13,6 +13,7 @@ import {
   X,
   ImageIcon,
   RefreshCcw,
+  MessageCircle,
 } from "lucide-react";
 import {
   products as editorialProducts,
@@ -21,8 +22,10 @@ import {
   type Sneaker,
   type Cart,
 } from "@/data/products";
+import { referenceAssets } from "@/data/reference-assets";
 import { demoProducts } from "@/data/demo-products";
 import { changeDemoCart } from "@/lib/demo-cart";
+import SneakerImage from "@/components/sneaker-image";
 import { Dialog } from "@/components/dialog";
 import type { Phase } from "@/components/sneaker-viewer";
 const Viewer = dynamic(() => import("@/components/sneaker-viewer"), {
@@ -50,7 +53,9 @@ export default function Home({ demo = false }: { demo?: boolean }) {
   });
   const [loading, setLoading] = useState(true),
     [index, setIndex] = useState(0),
-    [variantId, setVariantId] = useState(""),
+    [variantId, setVariantId] = useState(
+      demo ? demoProducts[0].variants[4].id : "",
+    ),
     [phase, setPhase] = useState<Phase>("idle");
   const [search, setSearch] = useState(false),
     [query, setQuery] = useState(""),
@@ -157,6 +162,9 @@ export default function Home({ demo = false }: { demo?: boolean }) {
         }, 650),
       );
   }, [phase]);
+  useEffect(() => {
+    if (current && !current.model) completeEntry();
+  }, [current, completeEntry]);
   const next = useCallback(
     (n: number) => choose((index + n + items.length) % items.length),
     [choose, index, items.length],
@@ -243,16 +251,14 @@ export default function Home({ demo = false }: { demo?: boolean }) {
   const modelEnabled =
     Boolean(current?.model) && modelAvailable && phase === "idle";
   return (
-    <main className="site">
+    <main className="site approved-scene">
       <header className="header">
         <Link
           className="logo"
           href={demo ? "/preview" : "/"}
           aria-label="SOLE CULT home"
         >
-          SOLE
-          <br />
-          CULT<sup>®</sup>
+          <img src={referenceAssets.logo} alt="SOLE CULT®" />
         </Link>
         <nav aria-label="Main navigation">
           <Link
@@ -286,8 +292,8 @@ export default function Home({ demo = false }: { demo?: boolean }) {
       </header>
       {demo && (
         <div className="demo-banner">
-          <span>DESIGN PREVIEW</span> Illustrative models · sample prices &
-          sizes · no real purchases
+          <span>DESIGN PREVIEW</span> Image assets · sample pricing · no real
+          orders
         </div>
       )}
       {search && (
@@ -358,6 +364,7 @@ export default function Home({ demo = false }: { demo?: boolean }) {
               </h1>
               <p>
                 A curated selection of the world&apos;s most wanted sneakers.
+                Authentic. Exclusive. Always fresh.
               </p>
               <button
                 className="primary"
@@ -372,22 +379,28 @@ export default function Home({ demo = false }: { demo?: boolean }) {
             </div>
             <div className="stage" aria-busy={phase !== "idle" || loading}>
               <div className="shoe-shadow" />
-              <Viewer
-                product={current}
-                phase={phase}
-                reduced={reduced}
-                rotate={rotate}
-                zoom={zoom}
-                reset={reset}
-                onReady={completeEntry}
-                onAvailabilityChange={setModelAvailable}
-              />
-              <div className="pedestal" />
-              {demo && (
-                <span className="model-caption">
-                  Illustrative 3D sneaker · drag to explore
-                </span>
+              {current.model ? (
+                <Viewer
+                  product={current}
+                  phase={phase}
+                  reduced={reduced}
+                  rotate={rotate}
+                  zoom={zoom}
+                  reset={reset}
+                  onReady={completeEntry}
+                  onAvailabilityChange={setModelAvailable}
+                />
+              ) : current.image ? (
+                <div className="hero-photo" data-phase={phase}>
+                  <SneakerImage product={current} />
+                </div>
+              ) : (
+                <div className="asset-missing">
+                  <ImageIcon size={38} />
+                  <span>Product image not yet available</span>
+                </div>
               )}
+              <div className="pedestal" />
             </div>
             <aside
               className="product"
@@ -402,7 +415,9 @@ export default function Home({ demo = false }: { demo?: boolean }) {
               {current.color && <p>{current.color}</p>}
               <strong className="price">
                 {current.price
-                  ? money(variant?.price || current.price)
+                  ? demo
+                    ? `R${(variant?.price || current.price).amount}`
+                    : money(variant?.price || current.price)
                   : "Price on request"}
               </strong>
               {current.description && (
@@ -471,7 +486,7 @@ export default function Home({ demo = false }: { demo?: boolean }) {
                   disabled={!variant || phase !== "idle"}
                   onClick={() => setDialog("whatsapp")}
                 >
-                  ORDER ON WHATSAPP
+                  <MessageCircle size={18} /> ORDER ON WHATSAPP
                 </button>
               ) : whatsapp ? (
                 <a
@@ -480,16 +495,16 @@ export default function Home({ demo = false }: { demo?: boolean }) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  ORDER ON WHATSAPP
+                  <MessageCircle size={18} /> ORDER ON WHATSAPP
                 </a>
               ) : (
                 <button className="whatsapp" disabled>
-                  ORDER ON WHATSAPP
+                  <MessageCircle size={18} /> ORDER ON WHATSAPP
                 </button>
               )}
               <p className="availability">
                 {demo
-                  ? "Preview pricing and sizes. Final product assets follow approval."
+                  ? ""
                   : !catalog.live
                     ? "Online ordering is not available yet."
                     : !variantId
@@ -505,7 +520,9 @@ export default function Home({ demo = false }: { demo?: boolean }) {
                 </div>
               )}
             </aside>
-            <div className="interaction">
+            <div
+              className={`interaction ${!current.model ? "image-mode" : ""}`}
+            >
               <button
                 disabled={!modelEnabled}
                 onClick={() => setRotate((v) => v + 1)}
@@ -563,7 +580,7 @@ export default function Home({ demo = false }: { demo?: boolean }) {
                   onClick={() => choose(i)}
                 >
                   {p.image ? (
-                    <img src={p.image} alt="" loading="lazy" />
+                    <SneakerImage product={p} decorative />
                   ) : (
                     <ImageIcon aria-hidden="true" size={30} strokeWidth={1} />
                   )}
@@ -588,12 +605,8 @@ export default function Home({ demo = false }: { demo?: boolean }) {
       <footer>
         SOLE CULT®{" "}
         {demo && (
-          <a
-            href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/MaterialsVariantsShoe"
-            target="_blank"
-            rel="noreferrer"
-          >
-            3D MODEL © SHOPIFY · CC BY 4.0 ↗
+          <a href="/reference/ASSETS.md" target="_blank" rel="noreferrer">
+            TEMPORARY REFERENCE IMAGERY
           </a>
         )}
         <span>FOR THE OBSESSED.</span>
@@ -754,11 +767,27 @@ export default function Home({ demo = false }: { demo?: boolean }) {
                   <ul className="cart-lines">
                     {cart.lines.nodes.map((line) => (
                       <li key={line.id}>
-                        {line.merchandise.product.featuredImage && (
-                          <img
-                            src={line.merchandise.product.featuredImage.url}
-                            alt=""
+                        {demo &&
+                        demoProducts.find((p) =>
+                          p.variants.some((v) => v.id === line.merchandise.id),
+                        ) ? (
+                          <SneakerImage
+                            product={
+                              demoProducts.find((p) =>
+                                p.variants.some(
+                                  (v) => v.id === line.merchandise.id,
+                                ),
+                              )!
+                            }
+                            decorative
                           />
+                        ) : (
+                          line.merchandise.product.featuredImage && (
+                            <img
+                              src={line.merchandise.product.featuredImage.url}
+                              alt=""
+                            />
+                          )
                         )}
                         <div>
                           <h3>{line.merchandise.product.title}</h3>

@@ -39,3 +39,14 @@ The user authorized an assumed-content review version before supplying final HD 
 - Browser suite expanded to **20 passing tests (38.4 seconds)** with desktop/mobile checks of the actual licensed sneaker model and generated thumbnails, WhatsApp message preview, bag persistence across refresh, and the complete demo checkout/confirmation flow. The test asserts that this flow makes **zero commerce API requests** and produces no page errors.
 - The self-contained HTML was opened from a local `file://` URL in Chromium. The GLB loaded and demo checkout reached confirmation with **zero external HTTP requests and zero page errors**. Desktop and mobile screenshots were captured. About navigation returns to the demo showroom within the offline file.
 - The actual shoe asset is an attributed generic model, not verified branded product geometry. The final merchant catalog, actual product models, real checkout, physical-device testing and Vercel deployment remain the acceptance requirements above.
+
+## Approved-screen correction
+
+The earlier generic model review was rejected. The user then supplied the actual approved 1280×720 screenshot. The current preview is rebuilt against that screenshot rather than the earlier repository scaffold.
+
+- Visual inspection uses a **1280×720** desktop capture and an iPhone 13 viewport capture. The temporary background, hero sneaker, six distinct secondary sneakers and wordmark are derived from the supplied reference.
+- The design-review tests now explicitly assert seven distinct image selections and **hidden 3D controls for image-only products**. The existing WebGL tests still verify true GLB rendering, rotation, zoom, mouse/touch gestures, model failures and slow loading separately.
+- Offline demo checkout remains checked on desktop and mobile. Cart thumbnails use the correct product image crop instead of displaying the entire six-product contact sheet.
+- This correction does not establish genuine product assets, merchant stock, a live order, physical-phone performance or a hosted Vercel preview. Those acceptance requirements remain unchanged.
+
+Final corrected-layout run: **20 browser checks passed in 26.5 seconds**; **13 unit/integration tests passed**; lint, TypeScript and the production build passed. Desktop and mobile offline demo confirmations produced no page errors. The mobile model-backed layout was adjusted to keep 3D controls clear of the thumbnail row.
