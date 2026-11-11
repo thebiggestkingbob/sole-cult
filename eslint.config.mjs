@@ -7,6 +7,7 @@ const config = [
   {
     ignores: [
       ".next/**",
+      "public/draco/**",
       "next-env.d.ts",
       "node_modules/**",
       "playwright-report/**",

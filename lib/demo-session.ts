@@ -11,7 +11,7 @@ export function loadDemoSession(): Cart | null {
     return null;
   }
 }
-export function saveDemoSession(cart: Cart | null) {
+export function saveDemoSession(cart: Omit<Cart, "id"> | null) {
   try {
     if (cart)
       sessionStorage.setItem(

@@ -84,3 +84,11 @@ The commerce integration now has server-backed desktop/mobile verification in ad
 A GitHub Actions workflow runs the verification and package steps on development pushes and pull requests. The fixture and workflow contain no real merchant or deployment credentials and do not place orders or deploy production.
 
 Deployment access was rechecked during this continuation. The connected Vercel team still has no `sole-cult` project; the environment has no configured Shopify secrets or CLI deployment identity. The earlier project-creation 403 remains unresolved. No permission change, store configuration or genuine GLB asset has been supplied, so live store acceptance and the Vercel preview remain blocked; unchanged failing mutations are not retried.
+
+## Current continuation branch
+
+The development branch **`dev/sole-cult-verified-20261111`** builds on `0fdb41c` from `dev/immersive-storefront`, preserving its approved reference scene, isolated preview and server-backed commerce tests. The reviewed design is retained.
+
+Additional changes keep Shopify cart IDs/private keys out of browser JSON, serve attributed Draco decoders locally, respect browser data-saver mode before downloading GLBs, and make browser tests portable to the cloud's system Chromium. The real server-backed commerce tests now assert that create/read responses omit the private cart ID.
+
+The current environment still supplies no Shopify store configuration or Vercel CLI binding. Its outbound policy rejects `api.vercel.com` and `api.github.com`. No Vercel preview has been deployed in this continuation. Provide merchant configuration and authentic product-specific assets securely; grant deployment access and the required outbound destinations before live acceptance. No environment configuration was republished.

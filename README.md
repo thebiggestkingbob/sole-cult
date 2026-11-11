@@ -45,3 +45,9 @@ Download and open `artifacts/sole-cult-preview.html` in a browser. It includes i
 GitHub Actions runs lint, types, unit/integration tests, the production build, desktop/mobile browser tests, server-backed commerce tests, and offline preview packaging on development pushes and pull requests. This job uses no merchant or deployment credentials and does not publish production.
 
 `npm run test:commerce` starts a separate production server on `localhost:3100`. Its real Next.js routes and server-only Shopify client talk to an explicitly isolated test fixture loaded into that child process. It verifies HTTP-only cart cookies, persistence, selected variants, inventory warnings, expired-cart recovery and checkout URLs without intercepting browser API calls or creating real orders. Never load the fixture into a live deployment.
+
+## Model delivery and cart privacy
+
+Draco-compressed GLBs use decoders hosted at `/draco/`, copied unmodified from the lockfile-installed Three.js package with their Apache 2.0 licence. Refresh `public/draco` from `three/examples/jsm/libs/draco/gltf` when upgrading that dependency. No external decoder CDN is needed at runtime.
+
+When the browser reports data-saver mode, the viewer shows product photography and waits for an explicit **Load 3D view** action before requesting the model. The real Shopify cart ID, including its private key, remains in the HTTP-only server cookie and is omitted from both cart API response types. Local browser suites support `CHROMIUM_PATH`, system Chromium, or Playwright's installed Chromium.

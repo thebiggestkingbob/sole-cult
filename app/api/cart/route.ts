@@ -1,3 +1,4 @@
+import type { Cart } from "@/data/products";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { addToCart, getCart, mutateCart, StoreError } from "@/lib/shopify";
@@ -28,6 +29,10 @@ function errorResponse(error: unknown) {
       headers: { "Cache-Control": "no-store" },
     },
   );
+}
+function publicCart(cart: Cart | null) {
+  if (!cart) return null;
+  return { checkoutUrl: cart.checkoutUrl, totalQuantity: cart.totalQuantity, cost: cart.cost, lines: cart.lines };
 }
 async function readMutation(
   request: NextRequest,
@@ -66,7 +71,7 @@ export async function GET(request: NextRequest) {
     const id = (await cookies()).get(cookieName)?.value;
     const cart = id ? await getCart(id, buyerIp(request)) : null;
     const response = NextResponse.json(
-      { cart },
+      { cart: publicCart(cart) },
       { headers: { "Cache-Control": "no-store" } },
     );
     if (id && !cart)
@@ -155,7 +160,7 @@ export async function POST(request: NextRequest) {
               ip,
             );
     } else throw new StoreError("Invalid bag action.", 400);
-    const response = NextResponse.json(result, {
+    const response = NextResponse.json({ ...result, cart: publicCart(result.cart) }, {
       headers: { "Cache-Control": "no-store" },
     });
     response.cookies.set(cookieName, result.cart.id, options);

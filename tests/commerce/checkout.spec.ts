@@ -16,7 +16,9 @@ test("catalog → selected variant → server cart cookie → persistence → in
   await expect(
     page.getByRole("link", { name: "ORDER ON WHATSAPP" }),
   ).toHaveAttribute("href", /EU%20Size%3A%2040/);
+  const mutation = page.waitForResponse(r => r.url().endsWith("/api/cart") && r.request().method() === "POST");
   await page.getByRole("button", { name: "ADD TO BAG", exact: true }).click();
+  expect((await (await mutation).json()).cart).not.toHaveProperty("id");
   await expect(page.getByRole("dialog")).toContainText("Added to your bag.");
   const cookie = (await context.cookies()).find(
     (c) => c.name === "sole-cult-cart",
@@ -28,7 +30,9 @@ test("catalog → selected variant → server cart cookie → persistence → in
     "sole-cult-cart",
   );
   await page.keyboard.press("Escape");
+  const restored = page.waitForResponse(r => r.url().endsWith("/api/cart") && r.request().method() === "GET");
   await page.reload();
+  expect((await (await restored).json()).cart).not.toHaveProperty("id");
   await page.getByRole("button", { name: "Bag: 1 items" }).click();
   await page.getByRole("combobox").selectOption("2");
   await expect(

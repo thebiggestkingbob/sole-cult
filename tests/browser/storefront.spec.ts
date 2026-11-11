@@ -496,3 +496,25 @@ test("a stalled model falls back and releases sneaker selection", async ({
   ).toBeDisabled();
   await expect(page.locator(".thumb").last()).toBeEnabled();
 });
+
+test("data saver avoids model downloads until the shopper opts in", async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true }));
+  await mockCatalog(page, "/data-saver-test.gltf");
+  let downloads = 0;
+  await page.route("**/data-saver-test.gltf", route => { downloads++; return route.fulfill({ json: testModel() }); });
+  await page.goto("/");
+  await expect(page.getByText("Data saver is on.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Rotate", exact: true })).toBeDisabled();
+  expect(downloads).toBe(0);
+  await page.getByRole("button", { name: "Load 3D view" }).click();
+  await expect(page.locator("canvas")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Rotate", exact: true })).toBeEnabled();
+  expect(downloads).toBe(1);
+});
+
+test("compressed model decoders are served locally", async ({ request }) => {
+  const response = await request.get("/draco/draco_decoder.wasm");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("application/wasm");
+  expect((await response.body()).subarray(0, 4)).toEqual(Buffer.from([0, 97, 115, 109]));
+});

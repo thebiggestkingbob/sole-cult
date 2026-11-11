@@ -59,3 +59,19 @@ Final corrected-layout run: **20 browser checks passed in 26.5 seconds**; **13 u
 - Lint, TypeScript and the production build passed. GitHub Actions now runs the same checks on development pushes and pull requests.
 
 These are stronger integration checks, not evidence of successful communication with a real merchant store or a completed payment. Real Shopify credentials, product-specific licensed GLBs, WhatsApp confirmation and Vercel project-creation access are still required for final acceptance.
+
+## 11 November 2026 — preserved reference design, private carts and model delivery
+
+Validated on `dev/sole-cult-verified-20261111`, based on the existing approved-reference implementation at `0fdb41c`:
+
+- Lint, TypeScript and production build passed.
+- **14 unit tests**, **30 desktop/mobile browser tests**, and **6 server-backed commerce tests** passed in this cloud instance.
+- The added commerce assertions verify that the real cart create/read routes omit the private Shopify cart ID while keeping cart persistence working through the HTTP-only cookie.
+- The added viewer assertions verify that data-saver mode prevents GLTF requests until explicit opt-in, and that the local Draco WASM decoder is served with the expected file signature and content type.
+- Browser tests use one worker locally and two in CI, with explicit startup timeouts. The initial parallel run hit two startup/hydration timing failures; the complete serial rerun passed all 30 unchanged behavior assertions.
+- `npm audit --omit=dev` reported zero vulnerabilities. The private Storefront header/token environment names are absent from the generated browser assets.
+- `npm run preview:package` generated the existing illustrative, self-contained review artifact successfully (11.6 MB). It remains separate from real merchant commerce.
+
+These results verify the implementation and isolated fixtures, not a live merchant transaction. Authentic product-specific photography/GLBs, Shopify credentials and merchant checkout configuration, the verified WhatsApp recipient, physical-phone acceptance, and an authorised Vercel preview deployment remain required. The current network policy rejects the Vercel API destination, and no local deployment credentials are configured. No environment publication or production deployment was performed.
+
+The packaged HTML was generated, but opening it through a `file://` URL in this cloud browser was rejected with `ERR_BLOCKED_BY_ADMINISTRATOR`. This continuation does not claim offline-file browser verification; the production `/preview` route is covered by the passing desktop/mobile suite.

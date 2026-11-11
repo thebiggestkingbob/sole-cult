@@ -83,7 +83,7 @@ export function restoreDemoCart(raw: string | null): Cart | null {
   }
 }
 export function changeDemoCart(
-  current: Cart | null,
+  current: Omit<Cart, "id"> | null,
   body: Record<string, unknown>,
 ): Cart {
   let lines = current?.lines.nodes.map((line) => ({ ...line })) || [];

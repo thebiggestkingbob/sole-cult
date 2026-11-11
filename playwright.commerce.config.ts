@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
 export default defineConfig({
@@ -5,7 +6,7 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   reporter: "list",
-  use: { baseURL: "http://localhost:3100" },
+  use: { baseURL: "http://localhost:3100", launchOptions: { executablePath: process.env.CHROMIUM_PATH || (existsSync("/usr/bin/chromium") ? "/usr/bin/chromium" : undefined) } },
   projects: [
     { name: "desktop-commerce", use: { ...devices["Desktop Chrome"] } },
     {

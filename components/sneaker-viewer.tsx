@@ -81,6 +81,7 @@ export default function SneakerViewer({
   onAvailabilityChange: (available: boolean) => void;
 }) {
   const [supported, setSupported] = useState<boolean | null>(null);
+  const [saveData, setSaveData] = useState(false);
   const [loadedId, setLoadedId] = useState<string | null>(null);
   const [timedOutId, setTimedOutId] = useState<string | null>(null);
   const ready = useCallback(() => {
@@ -91,6 +92,8 @@ export default function SneakerViewer({
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2");
     setSupported(Boolean(gl));
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    setSaveData(Boolean(connection?.saveData));
     gl?.getExtension("WEBGL_lose_context")?.loseContext();
   }, []);
   useEffect(() => {
@@ -100,10 +103,15 @@ export default function SneakerViewer({
     }
   }, [product.id, product.model, supported, onReady, onAvailabilityChange]);
   useEffect(() => {
-    if (!product.model || supported !== true || loadedId === product.id) return;
+    if (!product.model || supported !== true || loadedId === product.id || saveData) return;
     const timeout = setTimeout(() => setTimedOutId(product.id), 15000);
     return () => clearTimeout(timeout);
-  }, [product.id, product.model, supported, loadedId]);
+  }, [product.id, product.model, supported, loadedId, saveData]);
+  if (saveData && product.model)
+    return <>
+      <ReadyFallback product={product} onReady={onReady} onAvailabilityChange={onAvailabilityChange} reason="Data saver is on. Product photo shown when available." />
+      <button className="load-3d" onClick={() => setSaveData(false)}>Load 3D view</button>
+    </>;
   if (timedOutId === product.id)
     return (
       <ReadyFallback
@@ -226,7 +234,7 @@ function Model({
     onAvailabilityChange(true);
     onReady();
   }, [onReady, onAvailabilityChange]);
-  const { scene } = useGLTF(url);
+  const { scene } = useGLTF(url, "/draco/");
   const object = useMemo(() => {
     const clone = scene.clone(true);
     if (tint)

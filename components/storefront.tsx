@@ -20,7 +20,7 @@ import {
   money,
   variantLabel,
   type Sneaker,
-  type Cart,
+  type PublicCart as Cart,
 } from "@/data/products";
 import { referenceAssets } from "@/data/reference-assets";
 import { demoProducts } from "@/data/demo-products";

@@ -71,3 +71,6 @@ export type Cart = {
     }[];
   };
 };
+
+// The private Shopify cart ID stays in the server-owned cookie.
+export type PublicCart = Omit<Cart, "id">;
