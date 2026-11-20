@@ -9,8 +9,8 @@ type Stroke = { points: Point[]; radius: number; closed?: boolean };
 // Coordinates follow the approved 1536 × 864 composition. Depth and radius
 // vary independently so overlapping strokes catch light as separate volumes.
 const glyphs: { material: number; strokes: Stroke[] }[] = [
-  { material: 0, strokes: [{ radius: 86, points: [[242,195],[164,194],[103,240],[132,283],[204,308],[220,358],[180,413],[94,449],[-25,482]] }] },
-  { material: 0, strokes: [{ radius: 62, closed: true, points: [[300,274],[373,218],[416,250],[405,337],[365,415],[297,462],[268,428],[273,350]] }] },
+  { material: 0, strokes: [{ radius: 84, points: [[295,186],[192,202],[105,234],[124,275],[197,306],[223,355],[180,413],[94,449],[-25,482]] }] },
+  { material: 0, strokes: [{ radius: 53, closed: true, points: [[293,270],[372,218],[419,250],[409,337],[365,420],[297,462],[261,428],[265,350]] }] },
   { material: 1, strokes: [{ radius: 49, points: [[537,195],[488,280],[461,374],[456,433],[491,449],[560,436]] }] },
   { material: 1, strokes: [
     { radius: 42, points: [[778,229],[697,228],[642,262],[606,334],[579,405],[596,449],[659,437],[707,397]] },
@@ -145,7 +145,7 @@ export default function HeroScene({ pulse }: { pulse: number }) {
     renderer.setClearColor(0, 0);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(36, 1, 10, 4400);
+    const camera = new THREE.PerspectiveCamera(36, 1, 10, 10000);
     const environment = studioEnvironment(renderer);
     scene.environment = environment.texture;
     const key = new THREE.DirectionalLight('#fff3e1', 2.35);
@@ -179,7 +179,6 @@ export default function HeroScene({ pulse }: { pulse: number }) {
     const pointer = new THREE.Vector2();
     const aim = new THREE.Vector3(768, -432, 0);
     let distance = 1329;
-    let shift = 0;
     let frame = 0;
     let visible = true;
     let available = true;
@@ -195,10 +194,13 @@ export default function HeroScene({ pulse }: { pulse: number }) {
       }
       lastRender = now;
       const time = motion.matches ? 0 : now / 1000;
+      const progress = THREE.MathUtils.clamp((now - started) / 980, 0, 1);
+      const cameraPulse = motion.matches ? 0 : Math.sin(Math.PI * progress) ** 2;
       pointer.lerp(target, .055);
-      camera.position.set(aim.x + pointer.x * 38, aim.y + pointer.y * 25, distance);
+      camera.position.set(aim.x + pointer.x * 38 + cameraPulse * 16, aim.y + pointer.y * 25 + cameraPulse * 8, distance - cameraPulse * 32);
       camera.lookAt(aim);
-      key.position.x = -500 + pointer.x * 200;
+      key.position.x = -500 + pointer.x * 200 + cameraPulse * 140;
+      materials[1].roughness = .19 + cameraPulse * .045;
       groups.forEach((group, i) => {
         const progress = (now - started - i * 40) / 700;
         const flex = !motion.matches && progress > 0 && progress < 1 ? Math.sin(Math.PI * progress) ** 2 : 0;
@@ -226,7 +228,7 @@ export default function HeroScene({ pulse }: { pulse: number }) {
       camera.aspect = width / height;
       const worldWidth = mobile ? 1690 : 1536;
       distance = Math.max(worldWidth / camera.aspect, 864) / (2 * Math.tan(THREE.MathUtils.degToRad(18)));
-      shift = mobile ? Math.min(200, (height / width - .72) * 132) : 0;
+      const shift = mobile ? Math.min(230, (height / width - .72) * 197) : 0;
       aim.y = -432 - Math.max(0, shift);
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.2 : 1.45));
