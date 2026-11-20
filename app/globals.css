@@ -14,7 +14,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   overflow: hidden;
   min-height: 630px;
   height: max(100svh, 56.25vw);
-  background: radial-gradient(ellipse at 53% 52%, #faf1e9 0%, #f4e9df 53%, #e8dcd0 100%);
+  background: radial-gradient(ellipse at 48% 48%, #faf2e9 0%, #f1e7dd 57%, #e4d8ca 100%);
 }
 .header {
   position: relative;
@@ -63,11 +63,11 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   left: 32%;
   transform: rotate(-4deg);
   background: radial-gradient(ellipse at 45% 50%, #3b3023bd, #675a49a1 35%, #74614c43 58%, transparent 75%);
-  filter: blur(clamp(5px, .85vw, 15px));
+  filter: blur(clamp(5px, .65vw, 13px));
 }
-[data-moving="true"] .ground-shadow { animation: shadow-settle 800ms both; }
-.shoe-enter { animation: enter 800ms both; }
-.shoe-exit { animation: exit 440ms both; }
+[data-moving="true"] .ground-shadow { animation: shadow-settle 1050ms both; }
+.shoe-enter { animation: enter 1050ms cubic-bezier(.33,.02,.26,1) both; }
+.shoe-exit { animation: exit 540ms cubic-bezier(.47,.04,.46,.99) both; }
 @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.2%); } }
 @keyframes enter {
   0%, 25% { opacity: 0; transform: perspective(1000px) translate3d(calc(var(--fly) * -1), 12%, -170px) rotateY(calc(var(--yaw) * -1)) rotateZ(calc(var(--tilt) * -1)); }

@@ -9,7 +9,7 @@ type Stroke = { points: Point[]; radius: number; closed?: boolean };
 // Coordinates follow the approved 1536 × 864 composition. Depth and radius
 // vary independently so overlapping strokes catch light as separate volumes.
 const glyphs: { material: number; strokes: Stroke[] }[] = [
-  { material: 0, strokes: [{ radius: 84, points: [[295,186],[192,202],[105,234],[124,275],[197,306],[223,355],[180,413],[94,449],[-25,482]] }] },
+  { material: 0, strokes: [{ radius: 78, points: [[312,182,5],[235,190,16],[150,188,10],[95,225,-3],[122,277,-8],[197,303,7],[224,348,20],[182,400,10],[95,444,-10],[-35,489,-22]] }] },
   { material: 0, strokes: [{ radius: 53, closed: true, points: [[293,270],[372,218],[419,250],[409,337],[365,420],[297,462],[261,428],[265,350]] }] },
   { material: 1, strokes: [{ radius: 49, points: [[537,195],[488,280],[461,374],[456,433],[491,449],[560,436]] }] },
   { material: 1, strokes: [
@@ -27,8 +27,8 @@ const glyphs: { material: number; strokes: Stroke[] }[] = [
 
 function createStroke({ points, radius, closed = false }: Stroke, material: number) {
   const path = new THREE.CatmullRomCurve3(points.map(([x, y, z = 0]) => new THREE.Vector3(x, -y, z)), closed);
-  const segments = 96;
-  const sides = 40;
+  const segments = material === 0 ? 160 : 104;
+  const sides = 48;
   const frames = path.computeFrenetFrames(segments, closed);
   const positions: number[] = [];
   const bent: number[] = [];
@@ -36,20 +36,38 @@ function createStroke({ points, radius, closed = false }: Stroke, material: numb
   const indices: number[] = [];
   const center = new THREE.Vector3();
   const surface = new THREE.Vector3();
+  const tangent = new THREE.Vector3();
+  const previousTangent = new THREE.Vector3();
+  const bendDirection = new THREE.Vector3();
+  const radial = new THREE.Vector3();
   for (let ring = 0; ring <= segments; ring++) {
     const t = ring / segments;
     path.getPointAt(t, center);
+    path.getTangentAt(closed ? (t + .984) % 1 : Math.max(0, t - .016), previousTangent);
+    path.getTangentAt(closed ? (t + .016) % 1 : Math.min(1, t + .016), tangent);
+    bendDirection.subVectors(tangent, previousTangent);
+    const bendAngle = t * (closed ? 2 * Math.PI : 1);
     const cap = closed ? 1 : Math.sqrt(Math.max(0.00001, 1 - (1 - Math.min(1, t * 9, (1 - t) * 9)) ** 2));
     for (let side = 0; side <= sides; side++) {
       const angle = side / sides * Math.PI * 2;
-      const fold = material === 0 ? Math.sin(t * 123 + 3 * Math.sin(angle * 2)) * Math.sin(angle * 2 + t * 14) * .028 : 0;
-      const width = radius * cap * (1 + .09 * Math.sin(t * 17) + fold);
-      surface.copy(center)
-        .addScaledVector(frames.normals[ring], Math.cos(angle) * width)
-        .addScaledVector(frames.binormals[ring], Math.sin(angle) * width);
-      const z = surface.z * .82 + 17 * Math.sin(t * 8);
+      radial.copy(frames.normals[ring]).multiplyScalar(Math.cos(angle))
+        .addScaledVector(frames.binormals[ring], Math.sin(angle));
+      const compression = THREE.MathUtils.clamp(radial.dot(bendDirection) * 4.5, 0, 1);
+      const creaseWave = t * 20 * Math.PI * 2 + 2.8 * Math.sin(angle * 2) + 1.6 * Math.sin(t * 4 * Math.PI);
+      const crease = Math.max(0, Math.cos(creaseWave)) ** 5;
+      const fold = material === 0
+        ? -.115 * compression * crease + .021 * Math.sin(creaseWave) * (.4 + compression)
+        : material === 2 ? -.049 * compression * crease : 0;
+      const width = radius * cap * (1 + .065 * Math.sin(t * (closed ? 4 * Math.PI : 17)) + fold);
+      surface.copy(center).addScaledVector(radial, width);
+      const z = surface.z * .82 + 12 * Math.sin(t * (closed ? 2 * Math.PI : 8));
       positions.push(surface.x, surface.y, z);
-      bent.push(surface.x + 14 * Math.sin(t * 7), surface.y + 25 * Math.sin(t * 9), z + 48 * Math.sin(t * 5));
+      const buckle = Math.sin((closed ? bendAngle * 3 : t * 21) - angle) * compression * cap;
+      bent.push(
+        surface.x + 17 * Math.sin(closed ? bendAngle : t * 7),
+        surface.y + 28 * Math.sin(closed ? bendAngle * 2 : t * 9) + 10 * buckle,
+        z + 53 * Math.sin(closed ? bendAngle : t * 5) + 14 * buckle,
+      );
       uv.push(t, side / sides);
       if (ring < segments && side < sides) {
         const a = ring * (sides + 1) + side;
@@ -75,13 +93,15 @@ function createStroke({ points, radius, closed = false }: Stroke, material: numb
 
 function studioEnvironment(renderer: THREE.WebGLRenderer) {
   const studio = new THREE.Scene();
-  studio.background = new THREE.Color('#696462');
+  studio.background = new THREE.Color('#514c45');
   const panels = [
     { position: [-3, 4, 3], scale: [6, 2], color: [4, 3.8, 3.55] },
     { position: [2, -3, 2], scale: [7, 2], color: [1.65, 1.57, 1.47] },
     { position: [5, 1, 0], scale: [2, 6], color: [2.1, 1.95, 1.8] },
     { position: [-3, .3, -3], scale: [1, 5], color: [2.8, 2.5, 2.25] },
-    { position: [0, 1, 5], scale: [2, .7], color: [.12, .10, .09] },
+    { position: [-1, 1.4, 5], scale: [2.7, .48], color: [.065, .056, .046] },
+    { position: [0, 2.6, 5], scale: [4, .4], color: [4.8, 4.4, 3.9] },
+    { position: [-4, -1, 3], scale: [.5, 4.5], color: [3.15, 2.9, 2.7] },
   ].map(({ position, scale, color }) => {
     const panel = new THREE.Mesh(new THREE.PlaneGeometry(...(scale as [number, number])),
       new THREE.MeshBasicMaterial({ color: new THREE.Color(...(color as [number, number, number])) }));
@@ -91,25 +111,30 @@ function studioEnvironment(renderer: THREE.WebGLRenderer) {
     return panel;
   });
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const environment = pmrem.fromScene(studio, .035);
+  const environment = pmrem.fromScene(studio, .021);
   pmrem.dispose();
   panels.forEach((panel) => { panel.geometry.dispose(); panel.material.dispose(); });
   return environment;
 }
 
 function leatherGrain() {
-  const dimension = 256;
+  const dimension = 512;
   const pixels = new Uint8Array(dimension * dimension);
   for (let y = 0; y < dimension; y++) {
     for (let x = 0; x < dimension; x++) {
       const grain = Math.sin(x * .73 + Math.sin(y * .53) * 2) * Math.sin(y * .83 + Math.cos(x * .61) * 2);
       const pores = ((Math.imul(x + 1, 73856093) ^ Math.imul(y + 1, 19349663)) & 255) / 255;
-      pixels[y * dimension + x] = 128 + grain * 59 + pores * 38;
+      const across = y / dimension;
+      const seamDistance = Math.min(Math.abs(across - .19), Math.abs(across - .81));
+      const groove = 30 * Math.exp(-((seamDistance * 255) ** 2));
+      const stitch = 44 * Math.exp(-(((seamDistance - .012) * 330) ** 2))
+        * Math.max(0, Math.sin(x / dimension * Math.PI * 2 * 64)) ** 2;
+      pixels[y * dimension + x] = 124 + grain * 35 + pores * 34 - groove + stitch;
     }
   }
   const texture = new THREE.DataTexture(pixels, dimension, dimension, THREE.RedFormat);
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(3, 2);
+
   texture.magFilter = THREE.LinearFilter;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.generateMipmaps = true;
@@ -148,17 +173,17 @@ export default function HeroScene({ pulse }: { pulse: number }) {
     const camera = new THREE.PerspectiveCamera(36, 1, 10, 10000);
     const environment = studioEnvironment(renderer);
     scene.environment = environment.texture;
-    const key = new THREE.DirectionalLight('#fff3e1', 2.35);
+    const key = new THREE.DirectionalLight('#fff0dc', 2.85);
     key.position.set(-500, 650, 650);
-    const fill = new THREE.DirectionalLight('#fff6eb', .8);
+    const fill = new THREE.DirectionalLight('#fff6eb', .42);
     fill.position.set(550, -50, 400);
-    scene.add(key, fill, new THREE.HemisphereLight('#fff4de', '#827364', .9));
+    scene.add(key, fill, new THREE.HemisphereLight('#fff4de', '#655241', .67));
 
     const grain = leatherGrain();
     const materials = [
-      new THREE.MeshPhysicalMaterial({ color: '#e5d6c3', roughness: .54, sheen: .42, sheenColor: new THREE.Color('#fff4e6'), sheenRoughness: .7, bumpMap: grain, bumpScale: .55, side: THREE.DoubleSide }),
-      new THREE.MeshPhysicalMaterial({ color: '#dedbd7', metalness: 1, roughness: .19, envMapIntensity: 1.35, side: THREE.DoubleSide }),
-      new THREE.MeshPhysicalMaterial({ color: '#211d19', roughness: .58, clearcoat: .16, clearcoatRoughness: .44, bumpMap: grain, bumpScale: 1.35, side: THREE.DoubleSide }),
+      new THREE.MeshPhysicalMaterial({ color: '#e4d1b8', roughness: .47, sheen: .28, sheenColor: new THREE.Color('#fff4e6'), sheenRoughness: .7, side: THREE.DoubleSide }),
+      new THREE.MeshPhysicalMaterial({ color: '#dedbd7', metalness: 1, roughness: .12, envMapIntensity: 1.58, side: THREE.DoubleSide }),
+      new THREE.MeshPhysicalMaterial({ color: '#211d19', roughness: .49, clearcoat: .3, clearcoatRoughness: .35, bumpMap: grain, bumpScale: 1.35, side: THREE.DoubleSide }),
     ];
 
     const groups = glyphs.map(({ strokes, material }) => {
@@ -194,16 +219,19 @@ export default function HeroScene({ pulse }: { pulse: number }) {
       }
       lastRender = now;
       const time = motion.matches ? 0 : now / 1000;
-      const progress = THREE.MathUtils.clamp((now - started) / 980, 0, 1);
+      const progress = THREE.MathUtils.clamp((now - started) / 1190, 0, 1);
       const cameraPulse = motion.matches ? 0 : Math.sin(Math.PI * progress) ** 2;
       pointer.lerp(target, .055);
       camera.position.set(aim.x + pointer.x * 38 + cameraPulse * 16, aim.y + pointer.y * 25 + cameraPulse * 8, distance - cameraPulse * 32);
       camera.lookAt(aim);
       key.position.x = -500 + pointer.x * 200 + cameraPulse * 140;
-      materials[1].roughness = .19 + cameraPulse * .045;
+      materials[1].roughness = .12 + cameraPulse * .065;
       groups.forEach((group, i) => {
-        const progress = (now - started - i * 40) / 700;
-        const flex = !motion.matches && progress > 0 && progress < 1 ? Math.sin(Math.PI * progress) ** 2 : 0;
+        const progress = (now - started - i * 47) / 850;
+        const compression = THREE.MathUtils.smootherstep(progress, 0, .58);
+        const release = 1 - THREE.MathUtils.smootherstep(progress, .58, .9);
+        const rebound = .12 * Math.sin(Math.PI * THREE.MathUtils.smoothstep(progress, .87, 1));
+        const flex = motion.matches ? 0 : Math.max(0, compression * release - rebound);
         group.position.z = 10 * Math.sin(time * 1.15 + i * .8) + flex * 29;
         group.rotation.z = .012 * Math.sin(time * .8 + i) + flex * (i % 2 ? .12 : -.13);
         group.rotation.y = flex * (i % 2 ? .22 : -.17);

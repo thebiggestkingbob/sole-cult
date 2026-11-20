@@ -48,7 +48,7 @@ export default function Home() {
 
   useEffect(() => {
     if (outgoing === null) return;
-    const cleanup = window.setTimeout(() => setSelection(current => ({ ...current, outgoing: null })), 820);
+    const cleanup = window.setTimeout(() => setSelection(current => ({ ...current, outgoing: null })), 1070);
     return () => window.clearTimeout(cleanup);
   }, [outgoing, pulse]);
 
